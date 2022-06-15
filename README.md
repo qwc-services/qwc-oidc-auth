@@ -15,10 +15,11 @@ Configuration
 
 Environment variables:
 
-| Variable     | Description                                       | Default value          |
-|--------------|---------------------------------------------------|------------------------|
-| `OIDC_SLO`   | Execute OpenID Connect SLO (Single Logout). True/False      | False                  |
-| `GROUP_ATTR` | Attribute name with group information             | `department_qualified` |
+|     Variable    |        Description        | Default value |
+|-----------------|---------------------------|---------------|
+| `ISSUER_URL`    | OpenID Connect Issuer URL | -             |
+| `CLIENT_ID`     | Client ID                 | -             |
+| `CLIENT_SECRET` | Client secret             | -             |
 
 
 Usage/Development

@@ -1,4 +1,5 @@
 import datetime
+import os
 import flask
 import logging
 from flask import Flask, jsonify
@@ -9,22 +10,20 @@ from flask_pyoidc.user_session import UserSession
 
 app = Flask(__name__)
 # See https://flask.palletsprojects.com/en/2.0.x/config/
-app.config.update({'OIDC_REDIRECT_URI': 'http://localhost:5000/redirect_uri',
+app.config.update({'OIDC_REDIRECT_URI': 'http://127.0.0.1:5017/callback',
                    'SECRET_KEY': 'dev_key',  # make sure to change this!!
                    'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
                    'DEBUG': True})
 
-ISSUER = 'https://provider.example.com'
-CLIENT = 'client@provider'
-PROVIDER_NAME = 'provider'
 PROVIDER_CONFIG = ProviderConfiguration(
-    issuer=ISSUER,
-    client_metadata=ClientMetadata(CLIENT, 'secret'))
-auth = OIDCAuthentication({PROVIDER_NAME: PROVIDER_CONFIG})
+    issuer=os.environ['ISSUER_URL'],
+    client_metadata=ClientMetadata(
+        os.environ['CLIENT_ID'], os.environ['CLIENT_SECRET']))
+auth = OIDCAuthentication({'default': PROVIDER_CONFIG})
 
 
 @app.route('/login')
-@auth.oidc_auth(PROVIDER_NAME)
+@auth.oidc_auth('default')
 def login():
     user_session = UserSession(flask.session)
     return jsonify(access_token=user_session.access_token,
@@ -33,7 +32,7 @@ def login():
 
 
 @app.route('/api')
-@auth.token_auth(PROVIDER_NAME,
+@auth.token_auth('default',
                  scopes_required=['read', 'write'])
 def api():
     current_token_identity = auth.current_token_identity
@@ -41,7 +40,7 @@ def api():
 
 
 @app.route('/profile')
-@auth.access_control(PROVIDER_NAME)
+@auth.access_control('default')
 def profile():
     if auth.current_token_identity:
         return auth.current_token_identity
@@ -66,4 +65,4 @@ def error(error=None, error_description=None):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     auth.init_app(app)
-    app.run()
+    app.run(port=5017)
