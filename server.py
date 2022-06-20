@@ -10,16 +10,20 @@ from flask_pyoidc.user_session import UserSession
 
 app = Flask(__name__)
 # See https://flask.palletsprojects.com/en/2.0.x/config/
-app.config.update({'OIDC_REDIRECT_URI': 'http://127.0.0.1:5017/callback',
-                   'SECRET_KEY': 'dev_key',  # make sure to change this!!
+app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
                    'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
                    'DEBUG': True})
+
+
+app.config['OIDC_REDIRECT_URI'] = os.environ.get(
+    'OIDC_REDIRECT_URI', 'http://127.0.0.1:5017/callback')
 
 PROVIDER_CONFIG = ProviderConfiguration(
     issuer=os.environ['ISSUER_URL'],
     client_metadata=ClientMetadata(
         os.environ['CLIENT_ID'], os.environ['CLIENT_SECRET']))
 auth = OIDCAuthentication({'default': PROVIDER_CONFIG})
+auth.init_app(app)
 
 
 @app.route('/login')
@@ -63,6 +67,6 @@ def error(error=None, error_description=None):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    auth.init_app(app)
-    app.run(port=5017)
+    print("Starting OIDC Auth service...")
+    app.logger.setLevel(logging.DEBUG)
+    app.run(host='localhost', port=5017, debug=True)
