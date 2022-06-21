@@ -9,6 +9,8 @@ from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMet
 from flask_pyoidc.user_session import UserSession
 
 app = Flask(__name__)
+app.logger.setLevel(logging.DEBUG)
+
 # See https://flask.palletsprojects.com/en/2.0.x/config/
 app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
                    'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
