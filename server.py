@@ -32,6 +32,8 @@ auth.init_app(app)
 @auth.oidc_auth('default')
 def login():
     user_session = UserSession(flask.session)
+    app.logger.debug({"id_token": user_session.id_token,
+                      "userinfo": user_session.userinfo})
     return jsonify(access_token=user_session.access_token,
                    id_token=user_session.id_token,
                    userinfo=user_session.userinfo)
@@ -52,6 +54,8 @@ def profile():
         return auth.current_token_identity
     else:
         user_session = UserSession(flask.session)
+        app.logger.debug({"id_token": user_session.id_token,
+                          "userinfo": user_session.userinfo})
         return jsonify(access_token=user_session.access_token,
                        id_token=user_session.id_token,
                        userinfo=user_session.userinfo)
