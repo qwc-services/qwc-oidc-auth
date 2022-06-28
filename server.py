@@ -6,10 +6,10 @@ from flask import Flask, jsonify
 
 from flask_pyoidc import OIDCAuthentication
 from flask_pyoidc.provider_configuration import ProviderConfiguration, ClientMetadata
+from flask_pyoidc.redirect_uri_config import RedirectUriConfig
 from flask_pyoidc.user_session import UserSession
 
 app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
 
 # See https://flask.palletsprojects.com/en/2.0.x/config/
 app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
@@ -23,9 +23,16 @@ app.config['OIDC_REDIRECT_URI'] = os.environ.get(
 PROVIDER_CONFIG = ProviderConfiguration(
     issuer=os.environ['ISSUER_URL'],
     client_metadata=ClientMetadata(
-        os.environ['CLIENT_ID'], os.environ['CLIENT_SECRET']))
-auth = OIDCAuthentication({'default': PROVIDER_CONFIG})
+        os.environ['CLIENT_ID'], os.environ['CLIENT_SECRET'])
+    )
+REDIRECT_URI_CONFIG = RedirectUriConfig(
+    app.config['OIDC_REDIRECT_URI'], 'callback')
+auth = OIDCAuthentication(
+    {'default': PROVIDER_CONFIG},
+    redirect_uri_config=REDIRECT_URI_CONFIG)
 auth.init_app(app)
+
+app.logger.setLevel(logging.DEBUG)
 
 
 @app.route('/login')
