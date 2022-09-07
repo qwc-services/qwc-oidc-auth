@@ -6,7 +6,7 @@ Authentication service with OpenID Connect.
 Dependencies
 ------------
 
-* [Flask-pyoidc](https://github.com/zamzterz/Flask-pyoidc)
+* [Authlib](https://github.com/lepture/authlib)
 * [Flask-JWT-Extended](http://flask-jwt-extended.readthedocs.io/)
 
 
