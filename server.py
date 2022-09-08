@@ -24,16 +24,15 @@ app.config['OIDC_CLIENT_SECRET'] = os.getenv('CLIENT_SECRET')
 # e.g. https://accounts.google.com/.well-known/openid-configuration
 OPENID_METADATA_URL = os.getenv('ISSUER_URL') + \
                      '/.well-known/openid-configuration'
+OPENID_SCOPES = os.getenv('OPENID_SCOPES', 'openid email profile')
 
 oauth = OAuth(app)
 oauth.register(
     name='oidc',
     server_metadata_url=OPENID_METADATA_URL,
     client_kwargs={
-        'scope': 'openid email profile'
+        'scope': OPENID_SCOPES
     }
-    #     'scope': 'user.read openid profile email'
-    # },
     # authorize_params={'resource': 'urn:microsoft:userinfo'}
 )
 oidc = oauth.create_client('oidc')
