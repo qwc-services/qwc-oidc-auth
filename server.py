@@ -2,9 +2,8 @@ import datetime
 import os
 import flask
 import logging
-from flask import Flask, url_for, jsonify
+from flask import Flask, url_for, jsonify, request
 from flask.logging import default_handler
-from werkzeug.middleware.proxy_fix import ProxyFix
 from authlib.integrations.flask_client import OAuth
 
 
@@ -14,9 +13,6 @@ root.addHandler(default_handler)
 root.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
-
-# App is behind one proxy that sets the -For and -Host headers.
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # See https://flask.palletsprojects.com/en/2.0.x/config/
 app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
@@ -45,6 +41,8 @@ oidc = oauth.create_client('oidc')
 
 @app.route('/login')
 def login():
+    app.logger.debug("Request headers")
+    app.logger.debug(request.headers)
     redirect_uri = url_for('callback', _external=True)
     app.logger.info(f"redirect_uri: {redirect_uri}")
     return oidc.authorize_redirect(redirect_uri)
