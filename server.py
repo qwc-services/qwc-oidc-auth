@@ -9,14 +9,14 @@ from authlib.integrations.flask_client import OAuth
 
 
 # Enable debug logging for libs
-logging.basicConfig(level="DEBUG")
 root = logging.getLogger()
 root.addHandler(default_handler)
+root.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 
 # App is behind one proxy that sets the -For and -Host headers.
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 # See https://flask.palletsprojects.com/en/2.0.x/config/
 app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
