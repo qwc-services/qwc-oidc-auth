@@ -2,9 +2,16 @@ import datetime
 import os
 import flask
 import logging
-from flask import Flask, url_for, jsonify, request
+from flask import (
+    Flask, url_for, jsonify, request, session, redirect, make_response
+)
 from flask.logging import default_handler
 from authlib.integrations.flask_client import OAuth
+from flask_jwt_extended import (
+    jwt_required, create_access_token, get_jwt_identity,
+    set_access_cookies, unset_jwt_cookies
+)
+from qwc_services_core.auth import auth_manager
 
 
 # Enable debug logging for libs
@@ -14,10 +21,15 @@ root.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 
-# See https://flask.palletsprojects.com/en/2.0.x/config/
-app.config.update({'SECRET_KEY': 'dev_key',  # make sure to change this!!
-                   'PERMANENT_SESSION_LIFETIME': datetime.timedelta(days=7).total_seconds(),
-                   'DEBUG': True})
+app.config['JWT_COOKIE_SECURE'] = bool(os.environ.get(
+    'JWT_COOKIE_SECURE', False))
+app.config['JWT_COOKIE_SAMESITE'] = os.environ.get(
+    'JWT_COOKIE_SAMESITE', 'Lax')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.environ.get(
+    'JWT_ACCESS_TOKEN_EXPIRES', 12*3600))
+
+jwt = auth_manager(app)
+app.secret_key = app.config['JWT_SECRET_KEY']
 
 app.config['OIDC_CLIENT_ID'] = os.getenv('CLIENT_ID')
 app.config['OIDC_CLIENT_SECRET'] = os.getenv('CLIENT_SECRET')
@@ -40,6 +52,8 @@ oidc = oauth.create_client('oidc')
 
 @app.route('/login')
 def login():
+    target_url = request.args.get('url', '/')
+    session['target_url'] = target_url
     app.logger.debug("Request headers")
     app.logger.debug(request.headers)
     redirect_uri = url_for('callback', _external=True)
@@ -89,7 +103,38 @@ def callback():
     #   }
     # }
     app.logger.info(userinfo)
-    return jsonify(userinfo=userinfo)
+    username = userinfo.get('preferred_username',
+                            userinfo.get('upn'))
+    groups = []
+    identity = {'username': username, 'groups': groups}
+    # Create the tokens we will be sending back to the user
+    access_token = create_access_token(identity)
+    # refresh_token = create_refresh_token(identity)
+
+    target_url = session.pop('target_url', '/')
+
+    resp = make_response(redirect(target_url))
+    set_access_cookies(resp, access_token)
+    return resp
+
+
+@app.route('/')
+@jwt_required(optional=True)
+def index():
+    identity = get_jwt_identity()
+    return jsonify(identity)
+
+
+@app.route("/ready")
+def ready():
+    """ readyness probe endpoint """
+    return jsonify({"status": "OK"})
+
+
+@app.route("/healthz")
+def healthz():
+    """ liveness probe endpoint """
+    return jsonify({"status": "OK"})
 
 
 if __name__ == '__main__':
