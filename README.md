@@ -51,3 +51,6 @@ Start local service:
 Run standalone application:
 
     python server.py
+
+Login:
+    http://127.0.0.1:5017/login
