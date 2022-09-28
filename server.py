@@ -1,6 +1,4 @@
-import datetime
 import os
-import flask
 import logging
 from flask import (
     Flask, url_for, jsonify, request, session, redirect, make_response
@@ -54,7 +52,7 @@ oidc = oauth.create_client('oidc')
 def login():
     target_url = request.args.get('url', '/')
     session['target_url'] = target_url
-    app.logger.debug("Request headers")
+    app.logger.debug("Request headers:")
     app.logger.debug(request.headers)
     redirect_uri = url_for('callback', _external=True)
     app.logger.info(f"redirect_uri: {redirect_uri}")
@@ -84,6 +82,27 @@ def callback():
     #   }
     # }
     #
+    # eduid.ch:
+    # {
+    #   "userinfo": {
+    #     "at_hash": "bcCpXNOtQPCKIolbBKVrWg",
+    #     "sub": "AW3CJEEOCDQSNR4GLF7CGRINMFPZVTOW",
+    #     "swissEduPersonUniqueID": "12345678901@eduid.ch",
+    #     "email_verified": true,
+    #     "iss": "https://login.eduid.ch/",
+    #     "given_name": "John",
+    #     "nonce": "rseXKUJ3MaJDe7rmm1lL",
+    #     "aud": "<client_id>",
+    #     "acr": "password",
+    #     "auth_time": 1664372815,
+    #     "name": "John Doe",
+    #     "exp": 1664387215,
+    #     "iat": 1664372815,
+    #     "family_name": "Doe",
+    #     "email": "me@example.com"
+    #   }
+    # }
+    #
     # ADFS:
     # {
     #   "userinfo": {
@@ -104,7 +123,7 @@ def callback():
     # }
     app.logger.info(userinfo)
     username = userinfo.get('preferred_username',
-                            userinfo.get('upn'))
+                            userinfo.get('upn', userinfo.get('email')))
     groups = []
     identity = {'username': username, 'groups': groups}
     # Create the tokens we will be sending back to the user
