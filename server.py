@@ -137,6 +137,15 @@ def callback():
     return resp
 
 
+@app.route('/logout', methods=['GET', 'POST'])
+@jwt_required(optional=True)
+def logout():
+    target_url = request.args.get('url', '/')
+    resp = make_response(redirect(target_url))
+    unset_jwt_cookies(resp)
+    return resp
+
+
 @app.route('/')
 @jwt_required(optional=True)
 def index():
