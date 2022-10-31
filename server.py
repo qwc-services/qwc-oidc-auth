@@ -10,6 +10,9 @@ from flask_jwt_extended import (
     set_access_cookies, unset_jwt_cookies
 )
 from qwc_services_core.auth import auth_manager
+from qwc_services_core.tenant_handler import (
+    TenantHandler, TenantPrefixMiddleware, TenantSessionInterface
+)
 
 
 # Enable debug logging for libs
@@ -28,6 +31,11 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.environ.get(
 
 jwt = auth_manager(app)
 app.secret_key = app.config['JWT_SECRET_KEY']
+
+tenant_handler = TenantHandler(app.logger)
+
+app.wsgi_app = TenantPrefixMiddleware(app.wsgi_app)
+app.session_interface = TenantSessionInterface(os.environ)
 
 app.config['OIDC_CLIENT_ID'] = os.getenv('CLIENT_ID')
 app.config['OIDC_CLIENT_SECRET'] = os.getenv('CLIENT_SECRET')
@@ -48,9 +56,16 @@ oauth.register(
 oidc = oauth.create_client('oidc')
 
 
+def tenant_base():
+    """base path for tentant"""
+    # Updates config['JWT_ACCESS_COOKIE_PATH'] as side effect
+    prefix = app.session_interface.get_cookie_path(app)
+    return prefix.rstrip('/') + '/'
+
+
 @app.route('/login')
 def login():
-    target_url = request.args.get('url', '/')
+    target_url = request.args.get('url', tenant_base())
     session['target_url'] = target_url
     app.logger.debug("Request headers:")
     app.logger.debug(request.headers)
@@ -137,7 +152,8 @@ def callback():
     access_token = create_access_token(identity)
     # refresh_token = create_refresh_token(identity)
 
-    target_url = session.pop('target_url', '/')
+    base_url = tenant_base()
+    target_url = session.pop('target_url', base_url)
 
     resp = make_response(redirect(target_url))
     set_access_cookies(resp, access_token)
@@ -147,7 +163,7 @@ def callback():
 @app.route('/logout', methods=['GET', 'POST'])
 @jwt_required(optional=True)
 def logout():
-    target_url = request.args.get('url', '/')
+    target_url = request.args.get('url', tenant_base())
     resp = make_response(redirect(target_url))
     unset_jwt_cookies(resp)
     return resp
