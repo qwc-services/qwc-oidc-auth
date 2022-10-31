@@ -106,26 +106,33 @@ def callback():
     # ADFS:
     # {
     #   "userinfo": {
+    #     "appid": "c8699d44-facf-4329-b2c2-ff1f8c385beb",
+    #     "apptype": "Confidential",
     #     "aud": "c8699d44-facf-4329-b2c2-ff1f8c385beb",
     #     "auth_time": 1662626992,
+    #     "authmethod": "http://schemas.microsoft.com/ws/2008/06/identity/authenticationmethod/windows",
     #     "exp": 1662630592,
+    #     "group": ["User", Admin"],
     #     "iat": 1662626992,
     #     "iss": "https://example.com/adfs",
     #     "nbf": 1662626992,
     #     "nonce": "Ntyr78eXokrvA82BDKsV",
     #     "pwd_exp": "1733602",
     #     "pwd_url": "https://example.com/adfs/portal/updatepassword/",
+    #     "scp": "profile email openid"
     #     "sid": "S-1-5-21-111884681-232138482-1136263860-54956",
     #     "sub": "E8uMvTw4EzVtNJjAGGkn/HLxB5lsxPvUz9N8v2ONw6w=",
     #     "unique_name": "DOMAIN\\USER",
-    #     "upn": "john.doe@example.com"
+    #     "upn": "john.doe@example.com",
+    #     "ver": "1.0",
     #   }
     # }
     app.logger.info(userinfo)
     username = userinfo.get('preferred_username',
                             userinfo.get('upn', userinfo.get('email')))
-    groups = []
+    groups = userinfo.get('group', [])
     identity = {'username': username, 'groups': groups}
+    app.logger.info(identity)
     # Create the tokens we will be sending back to the user
     access_token = create_access_token(identity)
     # refresh_token = create_refresh_token(identity)
