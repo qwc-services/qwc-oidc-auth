@@ -13,6 +13,7 @@ from qwc_services_core.auth import auth_manager
 from qwc_services_core.tenant_handler import (
     TenantHandler, TenantPrefixMiddleware, TenantSessionInterface
 )
+from qwc_services_core.runtime_config import RuntimeConfig
 
 
 # Enable debug logging for libs
@@ -28,32 +29,46 @@ app.config['JWT_COOKIE_SAMESITE'] = os.environ.get(
     'JWT_COOKIE_SAMESITE', 'Lax')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.environ.get(
     'JWT_ACCESS_TOKEN_EXPIRES', 12*3600))
+app.config['SESSION_COOKIE_SECURE'] = app.config['JWT_COOKIE_SECURE']
+app.config['SESSION_COOKIE_SAMESITE'] = app.config['JWT_COOKIE_SAMESITE']
 
 jwt = auth_manager(app)
 app.secret_key = app.config['JWT_SECRET_KEY']
 
 tenant_handler = TenantHandler(app.logger)
+config_handler = RuntimeConfig("oidcAuth", app.logger)
 
 app.wsgi_app = TenantPrefixMiddleware(app.wsgi_app)
 app.session_interface = TenantSessionInterface(os.environ)
 
-app.config['OIDC_CLIENT_ID'] = os.getenv('CLIENT_ID')
-app.config['OIDC_CLIENT_SECRET'] = os.getenv('CLIENT_SECRET')
-# e.g. https://accounts.google.com/.well-known/openid-configuration
-OPENID_METADATA_URL = os.getenv('ISSUER_URL') + \
-                     '/.well-known/openid-configuration'
-OPENID_SCOPES = os.getenv('OPENID_SCOPES', 'openid email profile')
-
 oauth = OAuth(app)
-oauth.register(
-    name='oidc',
-    server_metadata_url=OPENID_METADATA_URL,
-    client_kwargs={
-        'scope': OPENID_SCOPES
-    }
-    # authorize_params={'resource': 'urn:microsoft:userinfo'}
-)
-oidc = oauth.create_client('oidc')
+
+
+def auth_service_handler():
+    """Get or create a OAuth client for a tenant."""
+    tenant = tenant_handler.tenant()
+    handler = tenant_handler.handler('oidcAuth', 'oidc', tenant)
+    if handler is None:
+        config = config_handler.tenant_config(tenant)
+        client_id = config.get('client_id', os.getenv('CLIENT_ID'))
+        client_secret = config.get('client_secret', os.getenv('CLIENT_SECRET'))
+        issuer_url = config.get('issuer_url', os.getenv('ISSUER_URL'))
+        # e.g. https://accounts.google.com/.well-known/openid-configuration
+        metadata_url = f"{issuer_url}/.well-known/openid-configuration"
+        openid_scopes = config.get('openid_scopes', 'openid email profile')
+        oauth.register(
+            name=tenant,
+            client_id=client_id,
+            client_secret=client_secret,
+            server_metadata_url=metadata_url,
+            client_kwargs={
+                'scope': openid_scopes
+            }
+            # authorize_params={'resource': 'urn:microsoft:userinfo'}
+        )
+        oidc = oauth.create_client(tenant)
+        handler = tenant_handler.register_handler('oidc', tenant, oidc)
+    return handler
 
 
 def tenant_base():
@@ -65,6 +80,7 @@ def tenant_base():
 
 @app.route('/login')
 def login():
+    oidc = auth_service_handler()
     target_url = request.args.get('url', tenant_base())
     session['target_url'] = target_url
     app.logger.debug("Request headers:")
@@ -76,6 +92,7 @@ def login():
 
 @app.route('/callback')
 def callback():
+    oidc = auth_service_handler()
     token = oidc.authorize_access_token()
     userinfo = token.get('userinfo')
     # {
@@ -143,6 +160,9 @@ def callback():
     #   }
     # }
     app.logger.info(userinfo)
+    # config = config_handler.tenant_config(tenant)
+    # username = config.get('username', 'preferred_username')
+    # groupinfo = config.get('groupinfo', 'group')
     username = userinfo.get('preferred_username',
                             userinfo.get('upn', userinfo.get('email')))
     groups = userinfo.get('group', [])

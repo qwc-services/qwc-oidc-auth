@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://git.sourcepole.ch/sourcepole/qwc-oidc-auth/-/raw/schemas/qwc-oidc-auth.json",
+  "title": "QWC OIDC authentication service",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "title": "JSON Schema",
+      "description": "Reference to JSON schema of this config",
+      "type": "string",
+      "format": "uri",
+      "default": "https://git.sourcepole.ch/sourcepole/qwc-oidc-auth/-/raw/schemas/qwc-oidc-auth.json"
+    },
+    "service": {
+      "title": "Service name",
+      "type": "string",
+      "const": "oidc-auth"
+    },
+    "config": {
+      "title": "Config options",
+      "type": "object",
+      "properties": {
+        "issuer_url": {
+          "description": "OpenID Connect Issuer URL",
+          "type": "string",
+          "format": "uri"
+        },
+        "client_id": {
+          "description": "Client ID",
+          "type": "string"
+        },
+        "client_secret": {
+          "description": "Client secret",
+          "type": "string"
+        },
+        "openid_scopes": {
+          "description": "Scopes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "issuer_url", "client_id", "client_secret"
+      ]
+    }
+  },
+  "required": [
+    "service",
+    "config"
+  ]
+}
