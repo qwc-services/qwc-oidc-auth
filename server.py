@@ -160,7 +160,7 @@ def callback():
     #   }
     # }
     app.logger.info(userinfo)
-    # config = config_handler.tenant_config(tenant)
+    # config = config_handler.tenant_config(tenant_handler.tenant())
     # username = config.get('username', 'preferred_username')
     # groupinfo = config.get('groupinfo', 'group')
     username = userinfo.get('preferred_username',

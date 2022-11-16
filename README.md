@@ -24,13 +24,13 @@ Environment variables (single tenant):
 
 ### Service config
 
-* [JSON schema](schemas/qwc-db-auth.json)
+* [JSON schema](schemas/qwc-oidc-auth.json)
 * File location: `$CONFIG_PATH/<tenant>/oidcAuthConfig.json`
 
 Example:
 ```json
 {
-  "$schema": "https://git.sourcepole.ch/sourcepole/qwc-oidc-auth/-/raw/schemas/qwc-oidc-auth.json",
+  "$schema": "https://git.sourcepole.ch/sourcepole/qwc-oidc-auth/-/raw/main/schemas/qwc-oidc-auth.json",
   "service": "oidc-auth",
   "config": {
     "issuer_url": "https://qwc2-dev.onelogin.com/oidc/2",
