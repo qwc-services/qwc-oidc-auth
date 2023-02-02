@@ -80,12 +80,14 @@ def tenant_base():
 
 @app.route('/login')
 def login():
+    config = config_handler.tenant_config(tenant_handler.tenant())
     oidc = auth_service_handler()
     target_url = request.args.get('url', tenant_base())
     session['target_url'] = target_url
     app.logger.debug("Request headers:")
     app.logger.debug(request.headers)
-    redirect_uri = url_for('callback', _external=True)
+    redirect_uri = config.get(
+        'redirect_uri', url_for('callback', _external=True))
     app.logger.info(f"redirect_uri: {redirect_uri}")
     return oidc.authorize_redirect(redirect_uri)
 

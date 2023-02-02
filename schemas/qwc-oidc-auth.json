@@ -36,6 +36,10 @@
         "openid_scopes": {
           "description": "Scopes",
           "type": "string"
+        },
+        "redirect_uri": {
+          "description": "Custom redirect URI after calling authorization endpoint",
+          "type": "string"
         }
       },
       "required": [
