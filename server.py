@@ -23,8 +23,8 @@ root.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 
-app.config['JWT_COOKIE_SECURE'] = bool(os.environ.get(
-    'JWT_COOKIE_SECURE', False))
+app.config['JWT_COOKIE_SECURE'] = os.environ.get(
+    'JWT_COOKIE_SECURE', 'False') == 'True'
 app.config['JWT_COOKIE_SAMESITE'] = os.environ.get(
     'JWT_COOKIE_SAMESITE', 'Lax')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.environ.get(
