@@ -1,3 +1,6 @@
+[![](https://github.com/qwc-services/qwc-oidc-auth/workflows/build/badge.svg)](https://github.com/qwc-services/qwc-oidc-auth/actions)
+[![docker](https://img.shields.io/docker/v/sourcepole/qwc-oidc-auth?label=Docker%20image&sort=semver)](https://hub.docker.com/r/sourcepole/qwc-oidc-auth)
+
 OpenID Connect Authentication
 =============================
 
