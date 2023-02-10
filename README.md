@@ -33,7 +33,7 @@ Environment variables (single tenant):
 Example:
 ```json
 {
-  "$schema": "https://github.com/qwc-services/qwc-oidc-auth/raw/master/schemas/qwc-oidc-auth.json",
+  "$schema": "https://github.com/qwc-services/qwc-oidc-auth/raw/main/schemas/qwc-oidc-auth.json",
   "service": "oidc-auth",
   "config": {
     "issuer_url": "https://qwc2-dev.onelogin.com/oidc/2",

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/qwc-services/qwc-oidc-auth/raw/master/schemas/qwc-oidc-auth.json",
+  "$id": "https://github.com/qwc-services/qwc-oidc-auth/raw/main/schemas/qwc-oidc-auth.json",
   "title": "QWC OIDC authentication service",
   "type": "object",
   "properties": {
@@ -9,7 +9,7 @@
       "description": "Reference to JSON schema of this config",
       "type": "string",
       "format": "uri",
-      "default": "https://github.com/qwc-services/qwc-oidc-auth/raw/master/schemas/qwc-oidc-auth.json"
+      "default": "https://github.com/qwc-services/qwc-oidc-auth/raw/main/schemas/qwc-oidc-auth.json"
     },
     "service": {
       "title": "Service name",
