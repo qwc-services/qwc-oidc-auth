@@ -83,6 +83,10 @@ def login():
     config = config_handler.tenant_config(tenant_handler.tenant())
     oidc = auth_service_handler()
     target_url = request.args.get('url', tenant_base())
+    # We store the target url in the session.
+    # Instead we could pass it as OAuth state
+    # (state=target_url in authorize_redirect)
+    # Then we should only pass the path as state for security reasons
     session['target_url'] = target_url
     app.logger.debug("Request headers:")
     app.logger.debug(request.headers)
