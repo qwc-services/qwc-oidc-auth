@@ -40,6 +40,14 @@
         "redirect_uri": {
           "description": "Custom redirect URI after calling authorization endpoint",
           "type": "string"
+        },
+        "username": {
+          "description": "Attribute for user name",
+          "type": "string"
+        },
+        "groupinfo": {
+          "description": "Attribute name of group memberships",
+          "type": "string"
         }
       },
       "required": [

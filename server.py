@@ -9,7 +9,7 @@ from flask_jwt_extended import (
     jwt_required, create_access_token, get_jwt_identity,
     set_access_cookies, unset_jwt_cookies
 )
-from qwc_services_core.auth import auth_manager
+from qwc_services_core.auth import auth_manager, GroupNameMapper
 from qwc_services_core.tenant_handler import (
     TenantHandler, TenantPrefixMiddleware, TenantSessionInterface
 )
@@ -166,12 +166,23 @@ def callback():
     #   }
     # }
     app.logger.info(userinfo)
-    # config = config_handler.tenant_config(tenant_handler.tenant())
-    # username = config.get('username', 'preferred_username')
-    # groupinfo = config.get('groupinfo', 'group')
-    username = userinfo.get('preferred_username',
-                            userinfo.get('upn', userinfo.get('email')))
-    groups = userinfo.get('group', [])
+    config = config_handler.tenant_config(tenant_handler.tenant())
+    groupinfo = config.get('groupinfo', 'group')
+    mapper = GroupNameMapper()
+
+    if config.get('username'):
+        username = userinfo.get(config.get('username'))
+    else:
+        username = userinfo.get('preferred_username',
+                                userinfo.get('upn', userinfo.get('email')))
+    groups = userinfo.get(groupinfo, [])
+    if isinstance(groups, str):
+        groups = [groups]
+    # Apply group name mappings
+    groups = [
+        mapper.mapped_group(g)
+        for g in groups
+    ]
     identity = {'username': username, 'groups': groups}
     app.logger.info(identity)
     # Create the tokens we will be sending back to the user
