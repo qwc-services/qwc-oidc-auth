@@ -43,6 +43,20 @@ Example:
 }
 ```
 
+The service expects authentication service information at $ISSUER_URL/.well-known/openid-configuration
+
+See [JSON schema](schemas/qwc-oidc-auth.json) for optional configuration options.
+
+
+### Identity provider configuration
+
+CLIENT_ID and CLIENT_SECRET are defined on identity provider side.
+
+The Redirect URI is the public base URL with the endpoint /callback (Example: https://qwc2.sourcepole.ch/oauth/callback).
+
+This redirect URI can be manually configured with `redirect_uri`.
+
+
 Usage/Development
 -----------------
 
