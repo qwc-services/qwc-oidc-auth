@@ -35,7 +35,8 @@
         },
         "openid_scopes": {
           "description": "Scopes",
-          "type": "string"
+          "type": "string",
+          "default": "openid email profile"
         },
         "redirect_uri": {
           "description": "Custom redirect URI after calling authorization endpoint",
