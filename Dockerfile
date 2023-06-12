@@ -7,4 +7,4 @@ ADD . /srv/qwc_service
 RUN pip3 install --no-cache-dir -r /srv/qwc_service/requirements.txt
 
 # Debugging
-RUN chown -R $SERVICE_UID:$SERVICE_GID /srv/qwc_service /usr/lib/python3.9/site-packages/authlib
+RUN chown -R $SERVICE_UID:$SERVICE_GID /srv/qwc_service /usr/lib/python3.11/site-packages/authlib
