@@ -178,6 +178,8 @@ def callback():
     groups = userinfo.get(groupinfo, [])
     if isinstance(groups, str):
         groups = [groups]
+    # Add group for all authenticated users
+    groups.append('verified')
     # Apply group name mappings
     groups = [
         mapper.mapped_group(g)
