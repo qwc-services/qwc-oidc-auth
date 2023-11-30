@@ -1,4 +1,4 @@
-FROM sourcepole/qwc-uwsgi-base:alpine-latest
+FROM sourcepole/qwc-uwsgi-base:alpine-v2023.10.26
 
 # Required for pycryptodomex and cffi
 RUN apk add --no-cache --update gcc python3-dev musl-dev libffi-dev
