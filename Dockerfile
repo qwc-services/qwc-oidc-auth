@@ -9,6 +9,3 @@ RUN \
   apk del build-deps
 
 ADD src /srv/qwc_service/
-
-# Debugging
-RUN chown -R $SERVICE_UID:$SERVICE_GID /srv/qwc_service /usr/lib/python3.11/site-packages/authlib
