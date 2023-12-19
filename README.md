@@ -78,14 +78,14 @@ Configure environment:
 
 Start local service:
 
-     python server.py
+     python src/server.py
 
 
 ### Usage
 
 Run standalone application:
 
-    python server.py
+    python src/server.py
 
 Login:
     http://127.0.0.1:5017/login
