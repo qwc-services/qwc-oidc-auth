@@ -83,7 +83,7 @@ Example:
 }
 ```
 
-`claims_options` are the token validation parameters which allow fine control over the content of the payload. See {https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation}.
+`claims_options` are the token validation parameters which allow fine control over the content of the payload. See https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation.
 
 ### Identity provider configuration
 
