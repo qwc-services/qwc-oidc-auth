@@ -51,7 +51,7 @@ See [JSON schema](schemas/qwc-oidc-auth.json) for optional configuration options
 
 It is possible to authorize connection with a external Access Token in  the Authorization Header (endpoint `/tokenlogin`).
 
-For each token a configuration need to be add in `authorized_api_token`.
+For each token a configuration needs to be add in `authorized_api_token`.
 
 Example:
 ```json
