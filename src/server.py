@@ -1,5 +1,11 @@
 import os
 import logging
+import requests
+from authlib.oauth2.rfc6749 import TokenValidator
+from authlib.oauth2.rfc6750 import errors
+from authlib.integrations.flask_oauth2 import ResourceProtector, current_token
+from authlib.jose import jwk, jwt as auth_jwt, JWTClaims
+
 from flask import (
     Flask, url_for, jsonify, request, session, redirect, make_response
 )
@@ -76,6 +82,47 @@ def tenant_base():
     # Updates config['JWT_ACCESS_COOKIE_PATH'] as side effect
     prefix = app.session_interface.get_cookie_path(app)
     return prefix.rstrip('/') + '/'
+
+
+class APITokenValidator(TokenValidator):
+    def authenticate_token(self, token_string):
+        config = config_handler.tenant_config(tenant_handler.tenant())
+        authorized_api_token = config.get('authorized_api_token', None)
+        if authorized_api_token:
+            for api in authorized_api_token:
+                def load_key(header, payload):
+                    jwk_set = requests.get(api["keys_url"]).json()
+                    app.logger.debug(f"header = {header}")
+                    try:
+                        return jwk.loads(jwk_set, header.get('kid'))
+                    except ValueError:
+                        app.logger.debug("Invalid JSON Web Key Set")
+                        return ""
+                try:
+                    claims_options = api["claims_options"]
+                    claims_options["exp"] = {
+                        "validate": JWTClaims.validate_exp,
+                    }
+                    app.logger.debug(f"{claims_options=}")
+                    token = auth_jwt.decode(token_string, load_key, claims_options=claims_options)
+                    token.validate()
+                    token["active"] = True
+                    app.logger.debug(f"{token=}")
+                    return token
+
+                except Exception as e:
+                    app.logger.debug(f"Decode token error : {e}")
+
+        return None
+
+    def validate_token(self, token, scopes, request):
+        if not token:
+            raise errors.InvalidTokenError()
+        token.validate()
+
+
+require_oauth = ResourceProtector()
+require_oauth.register_token_validator(APITokenValidator())
 
 
 @app.route('/login')
@@ -190,6 +237,43 @@ def callback():
     # Create the tokens we will be sending back to the user
     access_token = create_access_token(identity)
     # refresh_token = create_refresh_token(identity)
+
+    base_url = tenant_base()
+    target_url = session.pop('target_url', base_url)
+
+    resp = make_response(redirect(target_url))
+    set_access_cookies(resp, access_token)
+    return resp
+
+
+@app.route('/tokenlogin')
+@require_oauth()
+def token_login():
+    userinfo = current_token
+    app.logger.info(userinfo)
+    config = config_handler.tenant_config(tenant_handler.tenant())
+    groupinfo = config.get('groupinfo', 'group')
+    mapper = GroupNameMapper()
+
+    if config.get('username'):
+        username = userinfo.get(config.get('username'))
+    else:
+        username = userinfo.get('preferred_username',
+                                userinfo.get('upn', userinfo.get('email')))
+    groups = userinfo.get(groupinfo, [])
+    if isinstance(groups, str):
+        groups = [groups]
+    # Add group for all authenticated users
+    groups.append('verified')
+    # Apply group name mappings
+    groups = [
+        mapper.mapped_group(g)
+        for g in groups
+    ]
+    identity = {'username': username, 'groups': groups}
+    app.logger.info(identity)
+    # Create the tokens we will be sending back to the user
+    access_token = create_access_token(identity)
 
     base_url = tenant_base()
     target_url = session.pop('target_url', base_url)

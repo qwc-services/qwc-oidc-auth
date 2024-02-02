@@ -49,7 +49,24 @@
         "groupinfo": {
           "description": "Attribute name of group memberships",
           "type": "string"
-        }
+        },
+        "authorized_api_token": {
+          "description": "List of api token authorized to use tokenlogin endpoint",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "keys_url": {
+                "description": "Public keys URL to decode token",
+                "type": "string"
+              },
+              "claims_options":{
+                "description": "Token validation parameters following authlib specs : https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation",
+                "type": "object"
+              }
+            }
+          }
+        }          
       },
       "required": [
         "issuer_url", "client_id", "client_secret"
