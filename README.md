@@ -47,6 +47,43 @@ The service expects authentication service information at $ISSUER_URL/.well-know
 
 See [JSON schema](schemas/qwc-oidc-auth.json) for optional configuration options.
 
+#### Configure Access Token endpoint
+
+It is possible to authorize connection with a external Access Token in  the Authorization Header (endpoint /tokenlogin).
+
+For each token a configuration need to be add in `authorized_api_token`.
+
+Example:
+```json
+{
+  "$schema": "https://github.com/qwc-services/qwc-oidc-auth/raw/main/schemas/qwc-oidc-auth.json",
+  "service": "oidc-auth",
+  "config": {
+    "issuer_url": "https://qwc2-dev.onelogin.com/oidc/2",
+    "client_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxxxxxx",
+    "client_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "authorized_api_token": [{
+      "keys_url": "https://public_keys_url_to_decode_token",
+      "claims_options":{
+        "iss": {
+            "essential": true,
+            "values": ["https://example.com", "https://example.org"]
+        },
+        "sub": {
+            "essential": true,
+            "value": "xxxxxxxxxxxxx"
+        },
+        "aud": {
+          "essential": true,
+          "value": "api://xxxx-xxxxxxxxx-xxxxx"
+        }
+      }
+    }]
+  }
+}
+```
+
+`claims_options` are the token validation parameters which allow fine control over the content of the payload. This options following authlib specs : https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation
 
 ### Identity provider configuration
 
