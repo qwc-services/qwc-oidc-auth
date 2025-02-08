@@ -24,11 +24,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2024.12.14"
+version = "2025.1.31"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0f/bd/1d41ee578ce09523c81a15426705dd20969f5abf006d1afe8aeff0dd776a/certifi-2024.12.14.tar.gz", hash = "sha256:b650d30f370c2b724812bee08008be0c4163b163ddaec3f2546c1caf65f191db", size = 166010 }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/ab/c9f1e32b7b1bf505bf26f0ef697775960db7932abeb7b516de930ba2705f/certifi-2025.1.31.tar.gz", hash = "sha256:3d5da6925056f6f18f119200434a4780a94263f10d1c21d032a6f6b2baa20651", size = 167577 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/32/8f6669fc4798494966bf446c8c4a162e0b5d893dff088afddf76414f70e1/certifi-2024.12.14-py3-none-any.whl", hash = "sha256:1275f7a45be9464efc1173084eaa30f866fe2e47d389406136d332ed4967ec56", size = 164927 },
+    { url = "https://files.pythonhosted.org/packages/38/fc/bce832fd4fd99766c04d1ee0eead6b0ec6486fb100ae5e74c1d91292b982/certifi-2025.1.31-py3-none-any.whl", hash = "sha256:ca78db4565a652026a4db2bcdf68f2fb589ea80d0be70e03929ed730746b84fe", size = 166393 },
 ]
 
 [[package]]
@@ -385,11 +385,11 @@ dev = [{ name = "python-dotenv", specifier = ">=1.0.1" }]
 
 [[package]]
 name = "qwc-services-core"
-version = "1.4.0"
+version = "1.4.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/63/ca/4a85e4c511dcd2565ca041e27a5c1f67ee6ffc2981b8e98f241bc0eb5646/qwc_services_core-1.4.0.tar.gz", hash = "sha256:f4d1141b11e646470461ebad4a9f02a01e5d94d4220a112046b39c1157e4839e", size = 14800 }
+sdist = { url = "https://files.pythonhosted.org/packages/86/f5/b54ff31901c7867e61745eb624ec05da2581b28d0ea9f3e9019b170bc45b/qwc_services_core-1.4.2.tar.gz", hash = "sha256:9eab6b5c1c4e3750f15aa7a5ddbfadb04195f798e5f5050cbe787f045fe86646", size = 14790 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/61/112359e9a6bddfd9bfbf728f68fcffc627fd5144111b5eac04d19a7e0a47/qwc_services_core-1.4.0-py3-none-any.whl", hash = "sha256:84ccf79b62e44a4fa7587445d6dda992ddf9da6b4ee83819434ce538ed7a8983", size = 17499 },
+    { url = "https://files.pythonhosted.org/packages/11/8e/625a72e1bd7e63b27e08735b074076822d540d798d18fc65a530d0fe6421/qwc_services_core-1.4.2-py3-none-any.whl", hash = "sha256:9167c46ed83f34aed46ceaeec9c6b5c681598ec0185c7d9cb449a3767eb80fec", size = 17479 },
 ]
 
 [[package]]
