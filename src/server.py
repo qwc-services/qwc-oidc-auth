@@ -42,10 +42,10 @@ jwt = auth_manager(app)
 app.secret_key = app.config['JWT_SECRET_KEY']
 
 tenant_handler = TenantHandler(app.logger)
-config_handler = RuntimeConfig("oidcAuth", app.logger)
-
 app.wsgi_app = TenantPrefixMiddleware(app.wsgi_app)
-app.session_interface = TenantSessionInterface(os.environ)
+app.session_interface = TenantSessionInterface()
+
+config_handler = RuntimeConfig("oidcAuth", app.logger)
 
 oauth = OAuth(app)
 
