@@ -52,16 +52,17 @@ class OIDCAuth:
         )
         self._oidc = oauth.create_client(tenant)
 
-        db_url = self._config.get('db_url', 'postgresql:///?service=qwc_configdb')
+        self.db_url = self._config.get('db_url', 'postgresql:///?service=qwc_configdb')
         self.qwc_config_schema = self._config.get('qwc_config_schema', 'qwc_config')
         self.user_info_fields = self._config.get('user_info_fields', [])
-        db_engine = DatabaseEngine()
-        self.config_models = ConfigModels(
-            db_engine, db_url,
-            qwc_config_schema=self.qwc_config_schema
-        )
-        self.User = self.config_models.model('users')
-        self.UserInfo = self.config_models.model('user_infos')
+        if self.db_url:
+            db_engine = DatabaseEngine()
+            self.config_models = ConfigModels(
+                db_engine, self.db_url,
+                qwc_config_schema=self.qwc_config_schema
+            )
+            self.User = self.config_models.model('users')
+            self.UserInfo = self.config_models.model('user_infos')
 
     def config(self):
         return self._config
@@ -214,7 +215,8 @@ class OIDCAuth:
                 )
         self.logger.info(identity)
         # Sync user with qwc_configdb
-        self.sync_user(username, userinfo, additional_userinfo)
+        if self.db_url:
+            self.sync_user(username, userinfo, additional_userinfo)
 
         # Create the tokens we will be sending back to the user
         access_token = create_access_token(identity)

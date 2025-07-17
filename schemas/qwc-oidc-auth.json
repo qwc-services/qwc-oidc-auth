@@ -68,7 +68,7 @@
           }
         },
         "db_url": {
-          "description": "DB connection URL",
+          "description": "DB connection URL (to sync users and user_info_fields). Can be set to an empty string if sync is not needed. Default: `postgresql:///?service=qwc_configdb`",
           "type": "string"
         },
         "qwc_config_schema": {
@@ -76,7 +76,7 @@
           "type": "string"
         },
         "user_info_fields": {
-          "description": "List of user info fields to get from IdP and to include in JWT identity. Default: `[]`",
+          "description": "List of user info fields to get from IdP and to include in JWT identity and DB (if db_url is set). Default: `[]`",
           "type": "array",
           "items": {
             "type": "string"
