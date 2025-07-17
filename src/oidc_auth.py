@@ -10,6 +10,8 @@ from flask_jwt_extended import (
 )
 
 from qwc_services_core.auth import GroupNameMapper
+from qwc_services_core.config_models import ConfigModels
+from qwc_services_core.database import DatabaseEngine
 from qwc_services_core.runtime_config import RuntimeConfig
 
 class OIDCAuth:
@@ -50,8 +52,61 @@ class OIDCAuth:
         )
         self._oidc = oauth.create_client(tenant)
 
+        self.db_url = self._config.get('db_url', 'postgresql:///?service=qwc_configdb')
+        self.qwc_config_schema = self._config.get('qwc_config_schema', 'qwc_config')
+        self.user_info_fields = self._config.get('user_info_fields', [])
+        if self.db_url:
+            db_engine = DatabaseEngine()
+            self.config_models = ConfigModels(
+                db_engine, self.db_url,
+                qwc_config_schema=self.qwc_config_schema
+            )
+            self.User = self.config_models.model('users')
+            self.UserInfo = self.config_models.model('user_infos')
+
     def config(self):
         return self._config
+
+    def db_session(self):
+        """Return new session for ConfigDB."""
+        return self.config_models.session()
+
+    def find_user(self, db_session, **kwargs):
+        """Find user by filter.
+
+        :param Session db_session: DB session
+        :param **kwargs: keyword arguments for filter (e.g. name=username)
+        """
+        return db_session.query(self.User).filter_by(**kwargs).first()
+
+    def sync_user(self, username, userinfo, additional_userinfo):
+        # Sync user with qwc_configdb
+        with self.db_session() as db_session, db_session.begin():
+            user = self.find_user(db_session, name=username)
+            if user is None:
+                # create new user
+                user = self.User()
+                db_session.add(user)
+                self.logger.debug(f"Create {username} in config DB")
+            else:
+                self.logger.debug(f"Update {username} in config DB")
+
+            # update user
+            user.name = username
+            user.email = userinfo.get('email', '')
+
+            # update user info
+            user_info = user.user_info
+            if user_info is None:
+                # create new user_info
+                user_info = self.UserInfo()
+                # assign to user
+                user_info.user = user
+                db_session.add(user_info)
+
+            # update user info fields
+            for field in self.user_info_fields:
+                setattr(user_info, field, additional_userinfo.get(field, None))        
 
     def tenant_base(self):
         """base path for tenant"""
@@ -61,7 +116,12 @@ class OIDCAuth:
 
     def callback(self):
         token = self._oidc.authorize_access_token()
+        # userinfo from ID Token
         userinfo = token.get('userinfo')
+        self.logger.info(f"User infos from ID Token : {userinfo}")
+        # userinfo from UserInfo Endpoint
+        additional_userinfo = self._oidc.userinfo(token=token)
+        self.logger.info(f"User infos from Endpoint : {additional_userinfo}")        
         # {
         #   "userinfo": {
         #     "at_hash": "3lI-Bs8Ym0SmXLpEM6Idqw",
@@ -126,7 +186,6 @@ class OIDCAuth:
         #     "ver": "1.0",
         #   }
         # }
-        self.logger.info(userinfo)
         groupinfo = self._config.get('groupinfo', 'group')
         mapper = GroupNameMapper()
 
@@ -146,7 +205,19 @@ class OIDCAuth:
             for g in groups
         ]
         identity = {'username': username, 'groups': groups}
+        # collect user info fields
+        for field in self.user_info_fields:
+            if hasattr(additional_userinfo, field):
+                identity[field] = getattr(additional_userinfo, field)
+            else:
+                self.logger.warning(
+                    "User info field '%s' does not exist" % field
+                )
         self.logger.info(identity)
+        # Sync user with qwc_configdb
+        if self.db_url:
+            self.sync_user(username, userinfo, additional_userinfo)
+
         # Create the tokens we will be sending back to the user
         access_token = create_access_token(identity)
         # refresh_token = create_refresh_token(identity)
