@@ -207,8 +207,8 @@ class OIDCAuth:
         identity = {'username': username, 'groups': groups}
         # collect user info fields
         for field in self.user_info_fields:
-            if hasattr(additional_userinfo, field):
-                identity[field] = getattr(additional_userinfo, field)
+            if field in additional_userinfo:
+                identity[field] = additional_userinfo.get(field)
             else:
                 self.logger.warning(
                     "User info field '%s' does not exist" % field
