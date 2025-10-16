@@ -8,9 +8,8 @@ from authlib.integrations.flask_oauth2 import ResourceProtector
 from authlib.jose import jwk, jwt as auth_jwt, JWTClaims
 from flask import Flask, jsonify
 from flask.logging import default_handler
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from qwc_services_core.auth import auth_manager
+from qwc_services_core.auth import auth_manager, optional_auth, get_identity
 from qwc_services_core.tenant_handler import (
     TenantHandler, TenantPrefixMiddleware, TenantSessionInterface
 )
@@ -106,16 +105,16 @@ def token_login():
 
 
 @app.route('/logout', methods=['GET', 'POST'])
-@jwt_required(optional=True)
+@optional_auth
 def logout():
     app.logger.debug("Logout")
     return auth_service_handler().logout()
 
 @app.route('/')
-@jwt_required(optional=True)
+@app.route('/identity')
+@optional_auth
 def index():
-    identity = get_jwt_identity()
-    return jsonify(identity)
+    return jsonify(get_identity())
 
 
 @app.route("/ready")
