@@ -1,18 +1,19 @@
 import os
+from urllib.parse import urlparse
 
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_oauth2 import current_token
 from flask import (
-    url_for, request, session, redirect, make_response
+    make_response, redirect, request, session, url_for
 )
 from flask_jwt_extended import (
     create_access_token, set_access_cookies, unset_jwt_cookies
 )
-
 from qwc_services_core.auth import GroupNameMapper
 from qwc_services_core.config_models import ConfigModels
 from qwc_services_core.database import DatabaseEngine
 from qwc_services_core.runtime_config import RuntimeConfig
+
 
 class OIDCAuth:
     """OIDCAuth class
@@ -106,7 +107,7 @@ class OIDCAuth:
 
             # update user info fields
             for field in self.user_info_fields:
-                setattr(user_info, field, additional_userinfo.get(field, None))        
+                setattr(user_info, field, additional_userinfo.get(field, None))
 
     def tenant_base(self):
         """base path for tenant"""
@@ -121,7 +122,7 @@ class OIDCAuth:
         self.logger.info(f"User infos from ID Token : {userinfo}")
         # userinfo from UserInfo Endpoint
         additional_userinfo = self._oidc.userinfo(token=token)
-        self.logger.info(f"User infos from Endpoint : {additional_userinfo}")        
+        self.logger.info(f"User infos from Endpoint : {additional_userinfo}")
         # {
         #   "userinfo": {
         #     "at_hash": "3lI-Bs8Ym0SmXLpEM6Idqw",
@@ -227,10 +228,17 @@ class OIDCAuth:
 
         resp = make_response(redirect(target_url))
         set_access_cookies(resp, access_token)
-        return resp        
+        return resp
 
     def login(self):
         target_url = request.args.get('url', self.tenant_base())
+
+        # Check if target_url is relative
+        target_host = urlparse(target_url).netloc
+        if target_host != '' and target_host != request.host:
+            self.logger.info(f"malicious target url: {target_url}")
+            return "Invalid target url", 400
+
         # We store the target url in the session.
         # Instead we could pass it as OAuth state
         # (state=target_url in authorize_redirect)
@@ -246,6 +254,13 @@ class OIDCAuth:
     def logout(self):
         self.logger.debug("Logout from handler")
         target_url = request.args.get('url', self.tenant_base())
+
+        # Check if target_url is relative
+        target_host = urlparse(target_url).netloc
+        if target_host != '' and target_host != request.host:
+            self.logger.info(f"malicious target url: {target_url}")
+            return "Invalid target url", 400
+
         resp = make_response(redirect(target_url))
         unset_jwt_cookies(resp)
         return resp
