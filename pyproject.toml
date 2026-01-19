@@ -1,6 +1,6 @@
 [project]
 name = "qwc-oidc-auth"
-version = "v2026.01.06"
+version = "v2026.01.18"
 description = "OpenID Connect Authentication"
 readme = "README.md"
 requires-python = ">=3.10"
