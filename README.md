@@ -16,14 +16,8 @@ Dependencies
 Configuration
 -------------
 
-Environment variables (single tenant):
-
-|     Variable    |        Description        | Default value |
-|-----------------|---------------------------|---------------|
-| `ISSUER_URL`    | OpenID Connect Issuer URL | -             |
-| `CLIENT_ID`     | Client ID                 | -             |
-| `CLIENT_SECRET` | Client secret             | -             |
-
+The static config files are stored as JSON files in `$CONFIG_PATH` with subdirectories for each tenant,
+e.g. `$CONFIG_PATH/default/*.json`. The default tenant name is `default`.
 
 ### Service config
 
@@ -43,9 +37,13 @@ Example:
 }
 ```
 
-The service expects authentication service information at $ISSUER_URL/.well-known/openid-configuration
+The service expects authentication service information at `$ISSUER_URL/.well-known/openid-configuration`
 
-See [JSON schema](schemas/qwc-oidc-auth.json) for optional configuration options.
+See the [schema definition](schemas/qwc-oidc-auth.json) for the full set of supported config variables.
+
+### Environment variables
+
+Config options in the config file can be overridden by equivalent uppercase environment variables.
 
 #### Configure Access Token endpoint
 
@@ -94,16 +92,23 @@ The Redirect URI is the public base URL with the endpoint /callback (Example: ht
 This redirect URI can be manually configured with `redirect_uri`.
 
 
-Usage/Development
------------------
+Run locally
+-----------
 
-Configure environment:
+Install dependencies and run:
 
-    echo FLASK_ENV=development >.flaskenv
-
-Install dependencies and run service:
-
+    export CONFIG_PATH=<CONFIG_PATH>
     uv run src/server.py
 
-Login:
-    http://127.0.0.1:5017/login
+To use configs from a `qwc-docker` setup, set `CONFIG_PATH=<...>/qwc-docker/volumes/config`.
+
+Set `FLASK_DEBUG=1` for additional debug output.
+
+Set `FLASK_RUN_PORT=<port>` to change the default port (default: `5000`).
+
+Docker usage
+------------
+
+The Docker image is published on [Dockerhub](https://hub.docker.com/r/sourcepole/qwc-oidc-auth).
+
+See sample [docker-compose.yml](https://github.com/qwc-services/qwc-docker/blob/master/docker-compose-example.yml) of [qwc-docker](https://github.com/qwc-services/qwc-docker).
