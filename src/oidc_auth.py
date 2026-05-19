@@ -116,7 +116,17 @@ class OIDCAuth:
         return prefix.rstrip('/') + '/'
 
     def callback(self):
-        token = self._oidc.authorize_access_token()
+        base_url = self.tenant_base()
+        target_url = session.pop('target_url', base_url)
+
+        try:
+            token = self._oidc.authorize_access_token()
+        except Exception as e:
+            self.logger.warning("authorize_access_token failed: " + str(e))
+            resp = make_response(redirect(target_url))
+            unset_jwt_cookies(resp)
+            return resp
+
         # userinfo from ID Token
         userinfo = token.get('userinfo')
         self.logger.info(f"User infos from ID Token : {userinfo}")
@@ -222,9 +232,6 @@ class OIDCAuth:
         # Create the tokens we will be sending back to the user
         access_token = create_access_token(identity)
         # refresh_token = create_refresh_token(identity)
-
-        base_url = self.tenant_base()
-        target_url = session.pop('target_url', base_url)
 
         resp = make_response(redirect(target_url))
         set_access_cookies(resp, access_token)
