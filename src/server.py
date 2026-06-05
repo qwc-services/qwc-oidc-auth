@@ -107,8 +107,11 @@ def token_login():
 @app.route('/logout', methods=['GET', 'POST'])
 @optional_auth
 def logout():
-    app.logger.debug("Logout")
     return auth_service_handler().logout()
+
+@app.route('/end_session')
+def end_session():
+    return auth_service_handler().end_session()
 
 @app.route('/')
 @app.route('/identity')

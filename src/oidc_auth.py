@@ -4,11 +4,12 @@ from urllib.parse import urlparse
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_oauth2 import current_token
 from flask import (
-    make_response, redirect, request, session, url_for
+    make_response, redirect, request, session, url_for, render_template_string
 )
 from flask_jwt_extended import (
     create_access_token, set_access_cookies, unset_jwt_cookies
 )
+from urllib.parse import quote
 from qwc_services_core.auth import GroupNameMapper
 from qwc_services_core.config_models import ConfigModels
 from qwc_services_core.database import DatabaseEngine
@@ -268,9 +269,53 @@ class OIDCAuth:
             self.logger.info(f"malicious target url: {target_url}")
             return "Invalid target url", 400
 
-        resp = make_response(redirect(target_url))
+        if self._config.get('end_session_on_logout') == True:
+            resp = make_response(redirect(url_for('end_session', url=target_url)))
+        else:
+            resp = make_response(redirect(target_url))
+
         unset_jwt_cookies(resp)
         return resp
+
+    def end_session(self):
+        target_url = request.args.get('url', self.tenant_base())
+        # Check if target_url is relative
+        target_host = urlparse(target_url).netloc
+        if target_host != '' and target_host != request.host:
+            self.logger.info(f"malicious target url: {target_url}")
+            return "Invalid target url", 400
+
+        end_session_endpoint = self._oidc.server_metadata.get("end_session_endpoint")
+        if not end_session_endpoint:
+            self.logger.warning("The OIDC provider does not provide a end_session_endpoint")
+            session_logout_url = self._config.get('session_logout_url')
+            if not session_logout_url:
+                self.logger.warning("No custom session_logout_url provided")
+                return redirect(target_url)
+            else:
+                session_logout_url = session_logout_url.replace("$redirect_url$", quote(target_url, safe=""))
+                self.logger.info(f"Redirecting to {session_logout_url}")
+                return render_template_string("""
+                    <html>
+                    <body onload="document.forms[0].submit()">
+                        <form method="POST" action="{{ url }}">
+                        </form>
+                        <noscript>
+                        <p>Logging out... click below if not redirected.</p>
+                        <button type="submit">Logout</button>
+                        </noscript>
+                    </body>
+                    </html>
+                """, url=session_logout_url)
+        else:
+            id_token = session.get("id_token")
+            session.clear()
+            params = {
+                "post_logout_redirect_uri": target_url,
+                "id_token_hint": id_token,
+            }
+            self.logger.info(f"Redirecting to {end_session_endpoint}")
+            return redirect(end_session + "?" + urlencode(params))
 
     def token_login(self):
         userinfo = current_token

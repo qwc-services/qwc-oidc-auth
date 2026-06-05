@@ -67,6 +67,14 @@
             }
           }
         },
+        "end_session_on_logout": {
+          "description": "Whether to end the SSO session on logout. Default: `false`.",
+          "type": "boolean"
+        },
+        "session_logout_url": {
+          "description": "Custom URL to end the SSO session, if the provider provides no end_session_endpoint. Can contain the `$redirect_url$` placeholder.",
+          "type": "string"
+        },
         "db_url": {
           "description": "DB connection URL (to sync users and user_info_fields). Can be set to an empty string if sync is not needed. Default: `postgresql:///?service=qwc_configdb`",
           "type": "string"
