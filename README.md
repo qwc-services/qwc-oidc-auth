@@ -85,11 +85,16 @@ Example:
 
 ### Identity provider configuration
 
-CLIENT_ID and CLIENT_SECRET are defined on identity provider side.
+`CLIENT_ID` and `CLIENT_SECRET `are defined on identity provider side.
 
-The Redirect URI is the public base URL with the endpoint /callback (Example: https://qwc2.sourcepole.ch/oauth/callback).
+The redirect URI is the public base URL with the endpoint `/callback` (Example: https://qwc2.sourcepole.ch/oauth/callback).
 
 This redirect URI can be manually configured with `redirect_uri`.
+
+### End session on logout
+
+To end the OpenID session on when `/logout` is called, set `"end_session_on_logout": true` in the service config.
+If your OpenID provider does not provide a `end_session_endpoint` in the `.well-known/openid-configuration`, you can set a custom logout URL via `session_logout_url`.
 
 
 Run locally
