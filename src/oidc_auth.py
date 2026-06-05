@@ -132,7 +132,8 @@ class OIDCAuth:
         self.logger.info(f"User infos from ID Token : {userinfo}")
         # userinfo from UserInfo Endpoint
         additional_userinfo = self._oidc.userinfo(token=token)
-        self.logger.info(f"User infos from Endpoint : {additional_userinfo}")
+        if additional_userinfo:
+            self.logger.info(f"User infos from Endpoint : {additional_userinfo}")
         # {
         #   "userinfo": {
         #     "at_hash": "3lI-Bs8Ym0SmXLpEM6Idqw",
