@@ -132,7 +132,10 @@ class OIDCAuth:
         userinfo = token.get('userinfo')
         self.logger.info(f"User infos from ID Token : {userinfo}")
         # userinfo from UserInfo Endpoint
-        additional_userinfo = self._oidc.userinfo(token=token)
+        if self._oidc.server_metadata.get("userinfo_endpoint"):
+            additional_userinfo = self._oidc.userinfo(token=token)
+        else:
+            additional_userinfo = {}
         self.logger.info(f"User infos from Endpoint : {additional_userinfo}")
         # {
         #   "userinfo": {
