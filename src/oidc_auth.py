@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote, urlencode
 
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_oauth2 import current_token
@@ -9,7 +9,6 @@ from flask import (
 from flask_jwt_extended import (
     create_access_token, set_access_cookies, unset_jwt_cookies
 )
-from urllib.parse import quote
 from qwc_services_core.auth import GroupNameMapper
 from qwc_services_core.config_models import ConfigModels
 from qwc_services_core.database import DatabaseEngine
@@ -318,7 +317,7 @@ class OIDCAuth:
                 "id_token_hint": id_token,
             }
             self.logger.info(f"Redirecting to {end_session_endpoint}")
-            return redirect(end_session + "?" + urlencode(params))
+            return redirect(end_session_endpoint + "?" + urlencode(params))
 
     def token_login(self):
         userinfo = current_token
