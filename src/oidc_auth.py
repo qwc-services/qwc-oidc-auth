@@ -218,7 +218,7 @@ class OIDCAuth:
             mapper.mapped_group(g)
             for g in groups
         ]
-        identity = {'username': username, 'groups': groups}
+        identity = {'username': username, 'groups': groups, 'auth_service_url': url_for('logout', _external=True).replace("/logout", "")}
         # collect user info fields
         for field in self.user_info_fields:
             if field in additional_userinfo:
