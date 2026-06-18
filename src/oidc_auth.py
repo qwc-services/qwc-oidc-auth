@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse, quote, urlencode
+from urllib.parse import urlparse, quote, urlencode, urljoin
 
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_oauth2 import current_token
@@ -286,6 +286,9 @@ class OIDCAuth:
         if target_host != '' and target_host != request.host:
             self.logger.info(f"malicious target url: {target_url}")
             return "Invalid target url", 400
+        elif target_host == '':
+            # Ensure URL is absolute
+            target_url = urljoin(request.host_url, target_url)
 
         end_session_endpoint = self._oidc.server_metadata.get("end_session_endpoint")
         if not end_session_endpoint:
