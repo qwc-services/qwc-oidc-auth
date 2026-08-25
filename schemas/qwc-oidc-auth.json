@@ -90,10 +90,7 @@
             "type": "string"
           }
         }
-      },
-      "required": [
-        "issuer_url", "client_id", "client_secret"
-      ]
+      }
     }
   },
   "required": [
