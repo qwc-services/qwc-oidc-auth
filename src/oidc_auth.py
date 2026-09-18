@@ -208,7 +208,7 @@ class OIDCAuth:
         else:
             username = userinfo.get('preferred_username',
                                     userinfo.get('upn', userinfo.get('email')))
-        groups = userinfo.get(groupinfo, [])
+        groups = userinfo.get(groupinfo, additional_userinfo.get(groupinfo, []))
         if isinstance(groups, str):
             groups = [groups]
         # Add group for all authenticated users
@@ -333,7 +333,12 @@ class OIDCAuth:
         else:
             username = userinfo.get('preferred_username',
                                     userinfo.get('upn', userinfo.get('email')))
-        groups = userinfo.get(groupinfo, [])
+        # userinfo from UserInfo Endpoint
+        if self._oidc.server_metadata.get("userinfo_endpoint"):
+            additional_userinfo = self._oidc.userinfo(token=current_token)
+        else:
+            additional_userinfo = {}
+        groups = userinfo.get(groupinfo, additional_userinfo.get(groupinfo, []))
         if isinstance(groups, str):
             groups = [groups]
         # Add group for all authenticated users
