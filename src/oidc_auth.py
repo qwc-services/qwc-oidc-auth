@@ -72,6 +72,23 @@ class OIDCAuth:
         """Return new session for ConfigDB."""
         return self.config_models.session()
 
+    def get_groups(self, userinfo, additional_userinfo):
+        """Return mapped groups from oidc client."""
+        groupinfo = self._config.get('groupinfo', 'group')
+        mapper = GroupNameMapper()
+        groups = userinfo.get(groupinfo, additional_userinfo.get(groupinfo, []))
+        if isinstance(groups, str):
+            groups = [groups]
+        # Add group for all authenticated users
+        groups.append('verified')
+        # Apply group name mappings
+        groups = list(filter(None, [
+            mapper.mapped_group(g)
+            for g in groups
+        ]))
+        self.logger.debug(f"Get mapped groups : {groups}")
+        return groups
+
     def find_user(self, db_session, **kwargs):
         """Find user by filter.
 
@@ -200,24 +217,13 @@ class OIDCAuth:
         #     "ver": "1.0",
         #   }
         # }
-        groupinfo = self._config.get('groupinfo', 'group')
-        mapper = GroupNameMapper()
 
         if self._config.get('username'):
             username = userinfo.get(self._config.get('username'))
         else:
             username = userinfo.get('preferred_username',
                                     userinfo.get('upn', userinfo.get('email')))
-        groups = userinfo.get(groupinfo, additional_userinfo.get(groupinfo, []))
-        if isinstance(groups, str):
-            groups = [groups]
-        # Add group for all authenticated users
-        groups.append('verified')
-        # Apply group name mappings
-        groups = [
-            mapper.mapped_group(g)
-            for g in groups
-        ]
+        groups = self.get_groups(userinfo, additional_userinfo)
         identity = {'username': username, 'groups': groups, 'auth_service_url': url_for('logout', _external=True).replace("/logout", "")}
         # collect user info fields
         for field in self.user_info_fields:
@@ -325,8 +331,6 @@ class OIDCAuth:
     def token_login(self):
         userinfo = current_token
         self.logger.info(userinfo)
-        groupinfo = self._config.get('groupinfo', 'group')
-        mapper = GroupNameMapper()
 
         if self._config.get('username'):
             username = userinfo.get(self._config.get('username'))
@@ -338,16 +342,7 @@ class OIDCAuth:
             additional_userinfo = self._oidc.userinfo(token=current_token)
         else:
             additional_userinfo = {}
-        groups = userinfo.get(groupinfo, additional_userinfo.get(groupinfo, []))
-        if isinstance(groups, str):
-            groups = [groups]
-        # Add group for all authenticated users
-        groups.append('verified')
-        # Apply group name mappings
-        groups = [
-            mapper.mapped_group(g)
-            for g in groups
-        ]
+        groups = self.get_groups(userinfo, additional_userinfo)
         identity = {'username': username, 'groups': groups}
         self.logger.info(identity)
         # Create the tokens we will be sending back to the user
