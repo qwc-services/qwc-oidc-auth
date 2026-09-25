@@ -64,6 +64,7 @@ class OIDCAuth:
             )
             self.User = self.config_models.model('users')
             self.UserInfo = self.config_models.model('user_infos')
+            self.Group = self.config_models.model('groups')
 
     def config(self):
         return self._config
@@ -89,6 +90,29 @@ class OIDCAuth:
         self.logger.debug(f"Get mapped groups : {groups}")
         return groups
 
+    def find_or_create_group(self, db_session, **kwargs):
+        """Find group and create if not existing yet.
+
+        :param Session db_session: DB session
+        :param **kwargs: keyword arguments for filter (e.g. name=groupname)
+        """
+        group = db_session.query(self.Group).filter_by(**kwargs).first()
+        if group is None:
+            group = self.Group()
+            db_session.add(group)
+            group.name = kwargs.get('name', '')
+            self.logger.debug(f"Adding {group.name} group in config DB")
+
+        return group
+
+    def find_groups(self, db_session, group_names):
+        """Find groups by name
+
+        :param Session db_session: DB session
+        :param list[str] group_names: group names to find in config DB
+        """
+        return db_session.query(self.Group).filter(self.Group.name.in_(group_names)).all()
+
     def find_user(self, db_session, **kwargs):
         """Find user by filter.
 
@@ -97,8 +121,8 @@ class OIDCAuth:
         """
         return db_session.query(self.User).filter_by(**kwargs).first()
 
-    def sync_user(self, username, userinfo, additional_userinfo):
-        # Sync user with qwc_configdb
+    def sync_user(self, username, groups, userinfo, additional_userinfo):
+        # Sync user and its groups with qwc_configdb
         with self.db_session() as db_session, db_session.begin():
             user = self.find_user(db_session, name=username)
             if user is None:
@@ -125,6 +149,13 @@ class OIDCAuth:
             # update user info fields
             for field in self.user_info_fields:
                 setattr(user_info, field, additional_userinfo.get(field, None))
+            
+            # update groups
+            for group in groups:
+                # find or create group in config db
+                config_db_group = self.find_or_create_group(db_session, name=group)
+            user.groups_collection = self.find_groups(db_session, groups)
+            self.logger.debug(f"Adding {username} to groups in config DB : {', '.join(group for group in groups)}")
 
     def tenant_base(self):
         """base path for tenant"""
@@ -236,7 +267,7 @@ class OIDCAuth:
         self.logger.info(identity)
         # Sync user with qwc_configdb
         if self.db_url:
-            self.sync_user(username, userinfo, additional_userinfo)
+            self.sync_user(username, groups, userinfo, additional_userinfo)
 
         # Create the tokens we will be sending back to the user
         access_token = create_access_token(identity)
