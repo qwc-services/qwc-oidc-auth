@@ -271,7 +271,7 @@ class OIDCAuth:
             self.logger.info(f"malicious target url: {target_url}")
             return "Invalid target url", 400
 
-        if self._config.get('end_session_on_logout') == True:
+        if self._config.get('end_session_on_logout', False) == True:
             resp = make_response(redirect(url_for('end_session', url=target_url)))
         else:
             resp = make_response(redirect(target_url))
