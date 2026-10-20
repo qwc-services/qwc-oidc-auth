@@ -1,6 +1,7 @@
 import os
-from urllib.parse import urlparse, quote, urlencode, urljoin
+from urllib.parse import urlparse, quote, urljoin
 
+from authlib.common.urls import add_params_to_uri
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_oauth2 import current_token
 from flask import (
@@ -126,6 +127,8 @@ class OIDCAuth:
             resp = make_response(redirect(target_url))
             unset_jwt_cookies(resp)
             return resp
+        # needed as id_token_hint for RP-initiated logout (end_session)
+        session['id_token'] = token.get('id_token')
 
         # userinfo from ID Token
         userinfo = token.get('userinfo')
@@ -290,7 +293,7 @@ class OIDCAuth:
             # Ensure URL is absolute
             target_url = urljoin(request.host_url, target_url)
 
-        end_session_endpoint = self._oidc.server_metadata.get("end_session_endpoint")
+        end_session_endpoint = self._oidc.load_server_metadata().get("end_session_endpoint")
         if not end_session_endpoint:
             self.logger.warning("The OIDC provider does not provide a end_session_endpoint")
             session_logout_url = self._config.get('session_logout_url')
@@ -317,10 +320,12 @@ class OIDCAuth:
             session.clear()
             params = {
                 "post_logout_redirect_uri": target_url,
-                "id_token_hint": id_token,
+                "client_id": self._oidc.client_id,
             }
+            if id_token:
+                params["id_token_hint"] = id_token
             self.logger.info(f"Redirecting to {end_session_endpoint}")
-            return redirect(end_session_endpoint + "?" + urlencode(params))
+            return redirect(add_params_to_uri(end_session_endpoint, params))
 
     def token_login(self):
         userinfo = current_token
