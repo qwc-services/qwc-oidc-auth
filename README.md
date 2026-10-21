@@ -45,6 +45,14 @@ See the [schema definition](schemas/qwc-oidc-auth.json) for the full set of supp
 
 Config options in the config file can be overridden by equivalent uppercase environment variables.
 
+In addition, the following environment variables are supported:
+
+| Name                         | Default       | Description                                                                               |
+|------------------------------|---------------|-------------------------------------------------------------------------------------------|
+| `JWT_COOKIE_SECURE`          | `False`       | See [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/options.html#JWT_COOKIE_SECURE). |
+| `JWT_COOKIE_SAMESITE`        | `Lax`         | See [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/options.html#JWT_COOKIE_SAMESITE). |
+| `JWT_ACCESS_TOKEN_EXPIRES`   | `12*3600`     | See [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/en/stable/options.html#JWT_ACCESS_TOKEN_EXPIRES). |
+
 #### Configure Access Token endpoint
 
 It is possible to authorize connection with a external Access Token in  the Authorization Header (endpoint `/tokenlogin`).
